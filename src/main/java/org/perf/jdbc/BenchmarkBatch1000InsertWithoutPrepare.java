@@ -11,7 +11,7 @@ import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
-public class BenchmarkBatchInsertWithoutPrepare extends BenchmarkInit {
+public class BenchmarkBatch1000InsertWithoutPrepare extends BenchmarkInit {
 
     @Benchmark
     public void mysql(MyState state) throws Throwable {

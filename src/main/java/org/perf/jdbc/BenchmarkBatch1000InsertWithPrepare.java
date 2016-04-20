@@ -11,16 +11,16 @@ import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
-public class BenchmarkBatchInsertRewrite extends BenchmarkInit {
+public class BenchmarkBatch1000InsertWithPrepare extends BenchmarkInit {
 
     @Benchmark
     public void mysql(MyState state) throws Throwable {
-        executeBatch(state.mysqlConnectionRewrite);
+        executeBatch(state.mysqlConnection);
     }
 
     @Benchmark
     public void mariadb(MyState state) throws Throwable {
-        executeBatch(state.mariadbConnectionRewrite);
+        executeBatch(state.mariadbConnection);
     }
 
     private void executeBatch(Connection connection) throws SQLException {
