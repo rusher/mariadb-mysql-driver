@@ -7,20 +7,23 @@ MariaDB and MySQL databases are using the same exchange protocol, and driver off
 This is a Driver benchmark using [JMH microbenchmark](http://openjdk.java.net/projects/code-tools/jmh/)
 developed by the same guys in Oracle who implement the JIT, and is delivered as openJDK tools.
 
-## Understand the tests
+## The tests
 Class BenchmarkInit initialize connections using MySQL and MariaDB drivers before tests.
 
 test example org.perf.jdbc.BenchmarkPrepareStatementOneInsert : 
 ```java
 public class BenchmarkPrepareStatementOneInsert extends BenchmarkInit {
+
     @Benchmark
     public void mysql(MyState state) throws Throwable {
         executeOneInsertPrepare(state.mysqlConnection);
     }
+    
     @Benchmark
     public void mariadb(MyState state) throws Throwable {
         executeOneInsertPrepare(state.mariadbConnection);
     }
+    
     private void executeOneInsertPrepare(Connection connection) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO PerfTextQuery (charValue) values (?)");
         preparedStatement.setString(1, "abc");
@@ -33,21 +36,6 @@ The test will execute the prepareStatement "INSERT INTO PerfTextQuery (charValue
 
 Tests are launched multiple times using only 1 fork (we want JIT optimization !) : 60 warmup iterations of 1s followed by 600 measurement iterations of 1s
 
-
-## How run the tests
-* install a MySQL / MariaDB database with user root without password
-* create database "testj"
-* install engine [BLACKHOLE](https://mariadb.com/kb/en/mariadb/blackhole/) using command "INSTALL SONAME 'ha_blackhole'" (This engine don't save data, permitting to execute INSERT queries with stable time result)
-* restart database to activate the BLACKHOLE engine
-* install a JRE
-
-```script
-mvn clean install
-java -Duser.country=US -Duser.language=en -jar target/benchmarks.jar > result.txt &
-```
-(-Duser.country=US -Duser.language=en permit to avoid confusion with comma that can be use as thousand separator, and as decimal according to default java country)
-
-## Understand results 
 
 List of tests and their signification :
 
@@ -72,14 +60,30 @@ List of tests and their signification :
 
 
 
-Results are in file "result.txt".
-Complete results are the end of the file. Example of results 
+## How run the tests
+* install a MySQL / MariaDB database with user root without password
+* create database "testj"
+* install engine [BLACKHOLE](https://mariadb.com/kb/en/mariadb/blackhole/) using command "INSTALL SONAME 'ha_blackhole'" (This engine don't save data, permitting to execute INSERT queries with stable time result)
+* restart database to activate the BLACKHOLE engine
+* install a JRE
 
+```script
+mvn clean install
+java -Duser.country=US -Duser.language=en -jar target/benchmarks.jar > result.txt &
+```
+(-Duser.country=US -Duser.language=en permit to avoid confusion with comma used as decimal separator / thousand separator according to countries)
 
-# Example of results
+## Read results 
 
-execution run on a droplet on digitalocean.com using this parameters:
+Execution on a droplet on digitalocean.com using this parameters:
 - CentOS 7.2 64bits
 - 1GB memory
 - 1 CPU
 using default mariadb 10.1 configuration file
+
+Results are in file "result.txt".
+Complete results are the end of the file. Example of results : 
+
+
+
+

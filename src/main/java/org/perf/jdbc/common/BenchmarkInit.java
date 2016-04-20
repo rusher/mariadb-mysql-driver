@@ -71,7 +71,7 @@ public class BenchmarkInit {
             mysqlStatementRewrite = mysqlConnectionRewrite.createStatement();
             mariadbStatementRewrite = mariadbConnectionRewrite.createStatement();
 
-            //use black hole engine. so test are not stored and to avoid server disk access permetting more stable result
+            //use black hole engine. so test are not stored and to avoid server disk access permitting more stable result
             //if "java.sql.SQLSyntaxErrorException: Unknown storage engine 'BLACKHOLE'". restart database
             mysqlStatement.execute("INSTALL SONAME 'ha_blackhole'");
 
