@@ -121,7 +121,7 @@ BenchmarkSelect1RowFailover.mariadb                 avgt  100    568.416 ±  13.
 BenchmarkSelect1RowFailover.mysql                   avgt  100    591.973 ±   4.935  us/op
 ```
 
-How to read it :
+##### How to read it :
 BenchmarkBatchInsert1000Rewrite.mariadb             avgt  100      1.131 ±   0.010  ms/op
 BenchmarkBatchInsert1000Rewrite.mysql               avgt  100      1.530 ±   0.069  ms/op
 
@@ -132,7 +132,7 @@ Using mariadb driver, it take 1.131 millisecond to insert those 1000 data, and 9
 Using MySQL java driver, execution time is 1.530 millisecond.   
 (remember that INSERT queries are executed on BLACKHOLE engine, those number just reflect the execution time of the driver + echanges with database).
 
-Other example : 
+##### Other example : 
 BenchmarkBatchInsert1000WithPrepare.mariadb         avgt  100     49.903 ±   1.318  ms/op
 BenchmarkBatchInsert1000WithPrepare.mysql           avgt  100     62.583 ±   2.754  ms/op
 BenchmarkBatchInsert1000WithoutPrepare.mariadb      avgt  100     62.332 ±   2.146  ms/op
