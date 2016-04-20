@@ -55,23 +55,22 @@ java -Duser.country=US -Duser.language=en -jar target/benchmarks.jar > result.tx
 
 List of tests and their signification :
 
-* BenchmarkOneInsert* : execute query "INSERT INTO PerfTextQuery (charValue) values ('abc')"
-* BenchmarkOneInsertFailover* : same as BenchmarkOneInsert but using failover configuration
-* BenchmarkPrepareStatementOneInsert* : same as BenchmarkOneInsert but using "prepare" 
-* BenchmarkPrepareStatementOneInsertFailover* : same as BenchmarkOneInsert but using "prepare" and failover configuration 
-
-* BenchmarkSelect1Row : execute query "SELECT * FROM PerfReadQuery where id = 0";
-* BenchmarkSelect1RowFailover : same than BenchmarkSelect1Row but using failover configuration
-* BenchmarkSelect1000Rows : execute query "SELECT * FROM PerfReadQuery" (table with 1000 rows, each rows contain < 10 bytes) )
-* BenchmarkSelect1000BigRows : execute query "SELECT * FROM PerfReadQueryBig" (table with 1000 rows, each rows contain 10kb)
-
-* BenchmarkBatchInsertWithPrepare* : executing 1000 inserts using prepareStatement with "prepare" on server. (option useServerPrepStmts=true)
-* BenchmarkBatchInsertWithoutPrepare* : executing 1000 inserts. (option useServerPrepStmts=false)
-* BenchmarkBatchInsertRewrite* : executing 1000 inserts. (option rewriteBatchedStatements=true)
-
-* BenchmarkCallableStatementFunction : execute CallableStatement with query "{? = CALL testFunctionCall(?,?,?)}". Function created by "CREATE FUNCTION IF NOT EXISTS testFunctionCall(a float, b bigint, c int) RETURNS INT NO SQL \nBEGIN \nRETURN a; \nEND"
-* BenchmarkCallableStatementWithInParameter : execute CallableStatement with query "{call withResultSet(?)}". Procedure created with "CREATE PROCEDURE IF NOT EXISTS withResultSet(a int) begin select a; end"
-* BenchmarkCallableStatementWithOutParameter : execute CallableStatement with query "{call inOutParam(?)}". Procedure created with "CREATE PROCEDURE IF NOT EXISTS inoutParam(INOUT p1 INT) begin set p1 = p1 + 1; end"
+|Benchmark       |description |
+|-----------|:----------|
+| BenchmarkOneInsert* | execute query "INSERT INTO PerfTextQuery (charValue) values ('abc')"|
+| BenchmarkOneInsertFailover*|same as BenchmarkOneInsert but using failover configuration|
+| BenchmarkPrepareStatementOneInsert*|same as BenchmarkOneInsert but using "prepare" |
+| BenchmarkPrepareStatementOneInsertFailover*|same as BenchmarkOneInsert but using "prepare" and failover configuration |
+| BenchmarkSelect1Row|execute query "SELECT * FROM PerfReadQuery where id = 0";|
+| BenchmarkSelect1RowFailover|same than BenchmarkSelect1Row but using failover configuration|
+| BenchmarkSelect1000Rows|execute query "SELECT * FROM PerfReadQuery" (table with 1000 rows, each rows contain < 10 bytes) )|
+| BenchmarkSelect1000BigRows|execute query "SELECT * FROM PerfReadQueryBig" (table with 1000 rows, each rows contain 10kb)|
+| BenchmarkBatchInsertWithPrepare*|executing 1000 inserts using prepareStatement with "prepare" on server. (option useServerPrepStmts=true)|
+| BenchmarkBatchInsertWithoutPrepare*|executing 1000 inserts. (option useServerPrepStmts=false)|
+| BenchmarkBatchInsertRewrite*|executing 1000 inserts. (option rewriteBatchedStatements=true)|
+| BenchmarkCallableStatementFunction|execute CallableStatement with query "{? = CALL testFunctionCall(?,?,?)}". Function created by "CREATE FUNCTION IF NOT EXISTS testFunctionCall(a float, b bigint, c int) RETURNS INT NO SQL \nBEGIN \nRETURN a; \nEND"|
+| BenchmarkCallableStatementWithInParameter|execute CallableStatement with query "{call withResultSet(?)}". Procedure created with "CREATE PROCEDURE IF NOT EXISTS withResultSet(a int) begin select a; end"|
+| BenchmarkCallableStatementWithOutParameter|execute CallableStatement with query "{call inOutParam(?)}". Procedure created with "CREATE PROCEDURE IF NOT EXISTS inoutParam(INOUT p1 INT) begin set p1 = p1 + 1; end"|
 
 '* The goal is here to test the driver performance, not database, so INSERT's queries are send to a [BLACKHOLE](https://mariadb.com/kb/en/mariadb/blackhole/) engine (data are not stored). This permit to have more stable results.
 
