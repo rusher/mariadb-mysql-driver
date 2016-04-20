@@ -7,9 +7,9 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 @State(Scope.Benchmark)
-@Warmup(iterations = 60)
-@Measurement(iterations = 600)
-@Fork(value = 1)
+@Warmup(iterations = 10)
+@Measurement(iterations = 20)
+@Fork(value = 5)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 public class BenchmarkInit {
