@@ -132,5 +132,13 @@ Using mariadb driver, it take 1.131 millisecond to insert those 1000 data, and 9
 Using MySQL java driver, execution time is 1.530 millisecond.   
 (remember that INSERT queries are executed on BLACKHOLE engine, those number just reflect the execution time of the driver + echanges with database).
 
+Other example : 
+BenchmarkBatchInsert1000WithPrepare.mariadb         avgt  100     49.903 ±   1.318  ms/op
+BenchmarkBatchInsert1000WithPrepare.mysql           avgt  100     62.583 ±   2.754  ms/op
+BenchmarkBatchInsert1000WithoutPrepare.mariadb      avgt  100     62.332 ±   2.146  ms/op
+BenchmarkBatchInsert1000WithoutPrepare.mysql        avgt  100     70.661 ±   0.636  ms/op
+
+<div style="text-align:center"><img src ="Insert_1000_data.png" /></div>
+
 
 
