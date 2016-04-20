@@ -11,25 +11,21 @@ developed by the same guys in Oracle who implement the JIT, and is delivered as 
 Class BenchmarkInit initialize connections using MySQL and MariaDB drivers before tests.
 
 test example org.perf.jdbc.BenchmarkPrepareStatementOneInsert : 
-```script java
+```java
 public class BenchmarkPrepareStatementOneInsert extends BenchmarkInit {
-
     @Benchmark
     public void mysql(MyState state) throws Throwable {
         executeOneInsertPrepare(state.mysqlConnection);
     }
-
     @Benchmark
     public void mariadb(MyState state) throws Throwable {
         executeOneInsertPrepare(state.mariadbConnection);
     }
-
     private void executeOneInsertPrepare(Connection connection) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO PerfTextQuery (charValue) values (?)");
         preparedStatement.setString(1, "abc");
         preparedStatement.execute();
     }
-
 }
 ```
 
