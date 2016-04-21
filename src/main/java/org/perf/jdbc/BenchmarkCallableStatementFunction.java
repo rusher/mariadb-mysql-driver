@@ -26,6 +26,7 @@ public class BenchmarkCallableStatementFunction extends BenchmarkInit {
         callableStatement.setInt(3, 1);
         callableStatement.setInt(4, 1);
         callableStatement.execute();
+        callableStatement.close();
     }
 
 

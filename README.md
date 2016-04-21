@@ -34,7 +34,7 @@ public class BenchmarkPrepareStatementOneInsert extends BenchmarkInit {
 
 The test will execute the prepareStatement "INSERT INTO PerfTextQuery (charValue) values (?)" using a connection issued from MySQL or MariaDB driver.
 
-Tests are launched multiple times using 5 fork, 10 warmup iterations of one second followed by 20 measurement iterations of one second.
+Tests are launched multiple times using 1 fork (we want JIT optimization), 10 warmup iterations of one second followed by 200 measurement iterations of one second.
 
 
 List of tests and their signification :
@@ -72,7 +72,7 @@ mvn clean install
 java -Xmx256m -Xms256m -Duser.country=US -Duser.language=en -jar target/benchmarks.jar > result.txt &
 ```
 -Duser.country=US -Duser.language=en permit to avoid confusion with comma used as decimal separator / thousand separator according to countries
--Xmx256m -Xms256m is to limit java memory size so garbage time are more frequent.
+-Xmx256m -Xms256m is to limit java memory size so garbage time are more frequent, detect memory leak.
 
 ## Read results 
 

@@ -24,6 +24,7 @@ public class BenchmarkSelect1RowFailover extends BenchmarkInit {
         ResultSet rs = statement.executeQuery("SELECT * FROM PerfReadQuery where id = 0");
         rs.next();
         rs.getString(1);
+        rs.close();
     }
 
 

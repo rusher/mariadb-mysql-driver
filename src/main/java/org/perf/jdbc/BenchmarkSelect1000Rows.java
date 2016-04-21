@@ -24,6 +24,7 @@ public class BenchmarkSelect1000Rows extends BenchmarkInit {
         while (rs.next()) {
             rs.getString(1);
         }
+        rs.close();
     }
 
 }

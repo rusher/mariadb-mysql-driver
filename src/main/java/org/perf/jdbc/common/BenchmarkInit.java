@@ -8,8 +8,8 @@ import java.util.concurrent.TimeUnit;
 
 @State(Scope.Benchmark)
 @Warmup(iterations = 10)
-@Measurement(iterations = 20)
-@Fork(value = 5)
+@Measurement(iterations = 200)
+@Fork(value = 1)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 public class BenchmarkInit {
@@ -117,6 +117,14 @@ public class BenchmarkInit {
 
         @TearDown(Level.Trial)
         public void doTearDown() throws SQLException {
+            mysqlStatementRewrite.close();
+            mysqlStatement.close();
+            mysqlStatementFailover.close();
+
+            mariadbStatementRewrite.close();
+            mariadbStatement.close();
+            mariadbStatementFailover.close();
+
             mysqlConnection.close();
             mysqlConnectionRewrite.close();
             mysqlConnectionText.close();

@@ -21,7 +21,8 @@ public class BenchmarkCallableStatementWithInParameter extends BenchmarkInit {
     private void callableStatementWithInParameter(Connection connection) throws SQLException {
         CallableStatement stmt = connection.prepareCall("{call withResultSet(?)}");
         stmt.setInt(1, 1);
-        ResultSet rs = stmt.executeQuery();
+        stmt.execute();
+        stmt.close();
     }
 
 }

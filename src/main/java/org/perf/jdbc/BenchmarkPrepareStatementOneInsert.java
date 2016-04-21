@@ -25,6 +25,7 @@ public class BenchmarkPrepareStatementOneInsert extends BenchmarkInit {
         PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO PerfTextQuery (charValue) values (?)");
         preparedStatement.setString(1, "abc");
         preparedStatement.execute();
+        preparedStatement.close();
     }
 
 }

@@ -30,6 +30,7 @@ public class BenchmarkBatch1000InsertWithPrepare extends BenchmarkInit {
             preparedStatement.addBatch();
         }
         preparedStatement.executeBatch();
+        preparedStatement.close();
     }
 
 }

@@ -24,6 +24,7 @@ public class BenchmarkCallableStatementWithOutParameter extends BenchmarkInit {
         storedProc.registerOutParameter(1, Types.INTEGER);
         storedProc.execute();
         storedProc.getString(1);
+        storedProc.close();
     }
 
 }
