@@ -19,6 +19,11 @@ public class BenchmarkSelect1000BigRows extends BenchmarkInit {
         select1000BigRow(state.mariadbStatement);
     }
 
+    @Benchmark
+    public void drizzle(MyState state) throws Throwable {
+        select1000BigRow(state.drizzleStatement);
+    }
+
     private void select1000BigRow(Statement statement) throws SQLException {
         ResultSet rs = statement.executeQuery("SELECT * FROM PerfReadQueryBig");
         while (rs.next()) {

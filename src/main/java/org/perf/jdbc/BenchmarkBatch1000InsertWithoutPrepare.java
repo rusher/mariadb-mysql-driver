@@ -23,6 +23,11 @@ public class BenchmarkBatch1000InsertWithoutPrepare extends BenchmarkInit {
         executeBatch(state.mariadbConnectionText);
     }
 
+    @Benchmark
+    public void drizzle(MyState state) throws Throwable {
+        executeBatch(state.drizzleConnectionText);
+    }
+
     private void executeBatch(Connection connection) throws SQLException {
         PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO PerfTextQuery (charValue) values (?)");
         for (int i = 0; i < 1000; i++) {

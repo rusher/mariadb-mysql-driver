@@ -63,16 +63,17 @@ List of tests and their signification :
 ## How run the tests
 * install a MySQL / MariaDB database with user root without password
 * create database "testj"
+* create user perf : GRANT ALL ON testj.* TO 'perf'@'localhost' IDENTIFIED BY '!Password0';
 * install engine [BLACKHOLE](https://mariadb.com/kb/en/mariadb/blackhole/) using command "INSTALL SONAME 'ha_blackhole'" (This engine don't save data, permitting to execute INSERT queries with stable time result)
 * restart database to activate the BLACKHOLE engine
 * install a JRE
 
 ```script
 mvn clean install
-java -Xmx256m -Xms256m -Duser.country=US -Duser.language=en -jar target/benchmarks.jar > result.txt &
+java -Xmx64m -Xms64m -Duser.country=US -Duser.language=en -jar target/benchmarks.jar > result.txt &
 ```
 -Duser.country=US -Duser.language=en permit to avoid confusion with comma used as decimal separator / thousand separator according to countries
--Xmx256m -Xms256m is to limit java memory size so garbage time are more frequent, detect memory leak.
+-Xmx64m -Xms64m is to limit java memory size so garbage time are more frequent, detect memory leak.
 
 ## Read results 
 
@@ -88,45 +89,50 @@ Complete results are the end of the file. Example of results :
 
 
 ```
-# Run complete. Total time: 01:17:39
+
+# Run complete. Total time: 01:40:13
 
 Benchmark                                           Mode  Cnt      Score     Error  Units
-BenchmarkBatchInsert1000Rewrite.mariadb             avgt  100      1.131 ±   0.010  ms/op
-BenchmarkBatchInsert1000Rewrite.mysql               avgt  100      1.530 ±   0.069  ms/op
-BenchmarkBatchInsert1000WithPrepare.mariadb         avgt  100     49.903 ±   1.318  ms/op
-BenchmarkBatchInsert1000WithPrepare.mysql           avgt  100     62.583 ±   2.754  ms/op
-BenchmarkBatchInsert1000WithoutPrepare.mariadb      avgt  100     62.332 ±   2.146  ms/op
-BenchmarkBatchInsert1000WithoutPrepare.mysql        avgt  100     70.661 ±   0.636  ms/op
-BenchmarkCallableStatementFunction.mariadb          avgt  100    106.032 ±   4.080  us/op
-BenchmarkCallableStatementFunction.mysql            avgt  100    915.263 ±  73.758  us/op
-BenchmarkCallableStatementWithInParameter.mariadb   avgt  100     75.878 ±   0.921  us/op
-BenchmarkCallableStatementWithInParameter.mysql     avgt  100    654.043 ±  53.239  us/op
-BenchmarkCallableStatementWithOutParameter.mariadb  avgt  100     68.076 ±   3.056  us/op
-BenchmarkCallableStatementWithOutParameter.mysql    avgt  100    871.215 ± 108.167  us/op
-BenchmarkOneInsert.mariadb                          avgt  100     60.511 ±   2.574  us/op
-BenchmarkOneInsert.mysql                            avgt  100     70.912 ±   2.863  us/op
-BenchmarkOneInsertFailover.mariadb                  avgt  100     64.531 ±   2.300  us/op
-BenchmarkOneInsertFailover.mysql                    avgt  100     83.992 ±   1.553  us/op
-BenchmarkPrepareStatementOneInsert.mariadb          avgt  100     59.480 ±   2.423  us/op
-BenchmarkPrepareStatementOneInsert.mysql            avgt  100    197.476 ±   7.430  us/op
-BenchmarkPrepareStatementOneInsertFailover.mariadb  avgt  100     58.344 ±   1.987  us/op
-BenchmarkPrepareStatementOneInsertFailover.mysql    avgt  100    304.720 ±  20.155  us/op
-BenchmarkSelect1000BigRows.mariadb                  avgt  100  31731.889 ± 434.607  us/op
-BenchmarkSelect1000BigRows.mysql                    avgt  100  43211.154 ± 435.075  us/op
-BenchmarkSelect1000Rows.mariadb                     avgt  100   1050.453 ±   9.372  us/op
-BenchmarkSelect1000Rows.mysql                       avgt  100   1052.798 ±   7.483  us/op
-BenchmarkSelect1Row.mariadb                         avgt  100    557.003 ±   4.430  us/op
-BenchmarkSelect1Row.mysql                           avgt  100    568.452 ±   3.925  us/op
-BenchmarkSelect1RowFailover.mariadb                 avgt  100    568.416 ±  13.683  us/op
-BenchmarkSelect1RowFailover.mysql                   avgt  100    591.973 ±   4.935  us/op
+BenchmarkBatch1000InsertRewrite.mariadb             avgt  200      1.164 ±   0.029  ms/op
+BenchmarkBatch1000InsertRewrite.mysql               avgt  200      1.259 ±   0.029  ms/op
+BenchmarkBatch1000InsertWithPrepare.mariadb         avgt  200     46.219 ±   1.080  ms/op
+BenchmarkBatch1000InsertWithPrepare.mysql           avgt  200     49.635 ±   1.649  ms/op
+BenchmarkBatch1000InsertWithoutPrepare.mariadb      avgt  200     54.914 ±   1.341  ms/op
+BenchmarkBatch1000InsertWithoutPrepare.mysql        avgt  200     66.083 ±   1.878  ms/op
+BenchmarkCallableStatementFunction.mariadb          avgt  200     95.601 ±   4.198  us/op
+BenchmarkCallableStatementFunction.mysql            avgt  200    623.952 ±  28.255  us/op
+BenchmarkCallableStatementWithInParameter.mariadb   avgt  200     73.491 ±   3.135  us/op
+BenchmarkCallableStatementWithInParameter.mysql     avgt  200    469.432 ±  18.568  us/op
+BenchmarkCallableStatementWithOutParameter.mariadb  avgt  200     59.385 ±   1.424  us/op
+BenchmarkCallableStatementWithOutParameter.mysql    avgt  200    590.231 ±  19.447  us/op
+BenchmarkOneInsert.mariadb                          avgt  200     53.862 ±   1.370  us/op
+BenchmarkOneInsert.mysql                            avgt  200     61.765 ±   1.338  us/op
+BenchmarkOneInsertFailover.mariadb                  avgt  200     55.747 ±   2.279  us/op
+BenchmarkOneInsertFailover.mysql                    avgt  200     76.649 ±   2.393  us/op
+BenchmarkPrepareStatementOneInsert.mariadb          avgt  200     48.681 ±   1.329  us/op
+BenchmarkPrepareStatementOneInsert.mysql            avgt  200    145.434 ±   6.270  us/op
+BenchmarkPrepareStatementOneInsertFailover.mariadb  avgt  200     51.474 ±   1.802  us/op
+BenchmarkPrepareStatementOneInsertFailover.mysql    avgt  200    193.823 ±   8.372  us/op
+BenchmarkSelect1000BigRows.mariadb                  avgt  200  33587.901 ± 774.048  us/op
+BenchmarkSelect1000BigRows.mysql                    avgt  200  43151.932 ± 886.725  us/op
+BenchmarkSelect1000Rows.mariadb                     avgt  200   1076.215 ±  23.980  us/op
+BenchmarkSelect1000Rows.mysql                       avgt  200   1095.477 ±  25.948  us/op
+BenchmarkSelect1Row.mariadb                         avgt  200    567.323 ±   9.950  us/op
+BenchmarkSelect1Row.mysql                           avgt  200    579.553 ±  13.912  us/op
+BenchmarkSelect1RowFailover.mariadb                 avgt  200    577.272 ±  24.752  us/op
+BenchmarkSelect1RowFailover.mysql                   avgt  200    601.247 ±  14.033  us/op
+
 ```
 
 ##### How to read it :
 
+ms/op means millisecond per operation, us/op microsecond per operation.
+
 ```
 BenchmarkBatchInsert1000Rewrite.mariadb             avgt  100      1.131 ±   0.010  ms/op
 BenchmarkBatchInsert1000Rewrite.mysql               avgt  100      1.530 ±   0.069  ms/op
 ```
+
 
 <div style="text-align:center"><img src ="Insert_1000_data_2.png" /></div>
 

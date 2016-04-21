@@ -19,6 +19,11 @@ public class BenchmarkSelect1Row extends BenchmarkInit {
         select1Row(state.mariadbStatement);
     }
 
+    @Benchmark
+    public void drizzle(MyState state) throws Throwable {
+        select1Row(state.drizzleStatement);
+    }
+
     private void select1Row(Statement statement) throws SQLException {
         ResultSet rs = statement.executeQuery("SELECT * FROM PerfReadQuery where id = 0");
         rs.next();

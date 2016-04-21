@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 @State(Scope.Benchmark)
 @Warmup(iterations = 10)
-@Measurement(iterations = 200)
+@Measurement(iterations = 50)
 @Fork(value = 1)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
@@ -35,6 +35,14 @@ public class BenchmarkInit {
         public Statement mariadbStatement;
         public Statement mariadbStatementFailover;
 
+        public Connection drizzleConnectionText;
+
+        public Statement drizzleStatement;
+
+        private Connection createConnection(String className, String url, Properties props) throws Exception {
+            return ((Driver) Class.forName(className).newInstance()).connect(url, props);
+        }
+
         private Connection createConnection(String className, String url) throws Exception {
             return ((Driver) Class.forName(className).newInstance()).connect(url, new Properties());
         }
@@ -43,18 +51,39 @@ public class BenchmarkInit {
         public void doSetup() throws Exception {
             String mysqlDriverClass = "com.mysql.jdbc.Driver";
             String mariaDriverClass = "org.mariadb.jdbc.Driver";
-            // add &useSSL=false&serverTimezone=UTC for testing 6.0.2 mysql driver
-            String urlPrepare = "jdbc:mysql://localhost:3306/testj?user=root&useServerPrepStmts=true";
-            String urlWithoutPrepare = "jdbc:mysql://localhost:3306/testj?user=root&useServerPrepStmts=false";
-            String urlRewrite = "jdbc:mysql://localhost:3306/testj?user=root&rewriteBatchedStatements=true";
-            String urlFailover = "jdbc:mysql:replication://localhost:3306,localhost:3306/testj?user=root&useServerPrepStmts=true&validConnectionTimeout=0";
+            String drizzleDriverClass = "org.drizzle.jdbc.DrizzleDriver";
+
+            String baseUrl = "jdbc:mysql://localhost:3306/testj";
+            String baseDrizzle = "jdbc:drizzle://localhost:3306/testj";
+
+            Properties prepareProperties = new Properties();
+            prepareProperties.setProperty("user", "perf");
+            prepareProperties.setProperty("password", "!Password0");
+            prepareProperties.setProperty("useServerPrepStmts", "true");
+            prepareProperties.setProperty("cachePrepStmts", "true");
+            prepareProperties.setProperty("useSSL", "false");
+
+            Properties textProperties = new Properties();
+            textProperties.setProperty("user", "perf");
+            textProperties.setProperty("password", "!Password0");
+            textProperties.setProperty("useServerPrepStmts", "false");
+            textProperties.setProperty("useSSL", "false");
+
+            Properties textPropertiesDrizzle = new Properties();
+            textPropertiesDrizzle.setProperty("user", "perf");
+            textPropertiesDrizzle.setProperty("password", "!Password0");
+
+            String urlRewrite = "jdbc:mysql://localhost:3306/testj?user=perf&rewriteBatchedStatements=true&useSSL=false&password=!Password0";
+            String urlFailover = "jdbc:mysql:replication://localhost:3306,localhost:3306/testj?"
+                    + "user=perf&useServerPrepStmts=true&validConnectionTimeout=0&cachePrepStmts=true&useSSL=false&password=!Password0";
 
             //create different kind of connection
-            mysqlConnection = createConnection(mysqlDriverClass, urlPrepare);
-            mariadbConnection = createConnection(mariaDriverClass, urlPrepare);
+            mysqlConnection = createConnection(mysqlDriverClass, baseUrl, prepareProperties);
+            mariadbConnection = createConnection(mariaDriverClass, baseUrl, prepareProperties);
 
-            mysqlConnectionText =  createConnection(mysqlDriverClass, urlWithoutPrepare);
-            mariadbConnectionText =  createConnection(mariaDriverClass, urlWithoutPrepare);
+            mysqlConnectionText =  createConnection(mysqlDriverClass, baseUrl, textProperties);
+            mariadbConnectionText =  createConnection(mariaDriverClass, baseUrl, textProperties);
+            drizzleConnectionText = createConnection(drizzleDriverClass, baseDrizzle, textPropertiesDrizzle);
 
             mysqlConnectionRewrite = createConnection(mysqlDriverClass, urlRewrite);
             mariadbConnectionRewrite = createConnection(mariaDriverClass, urlRewrite);
@@ -67,21 +96,27 @@ public class BenchmarkInit {
 
             mysqlStatement = mysqlConnection.createStatement();
             mariadbStatement = mariadbConnection.createStatement();
+            drizzleStatement = drizzleConnectionText.createStatement();
 
             mysqlStatementRewrite = mysqlConnectionRewrite.createStatement();
             mariadbStatementRewrite = mariadbConnectionRewrite.createStatement();
 
             //use black hole engine. so test are not stored and to avoid server disk access permitting more stable result
             //if "java.sql.SQLSyntaxErrorException: Unknown storage engine 'BLACKHOLE'". restart database
-            mysqlStatement.execute("INSTALL SONAME 'ha_blackhole'");
+            try {
+                mysqlStatement.execute("INSTALL SONAME 'ha_blackhole'");
+            } catch (Exception e) { }
 
             mysqlStatement.execute("CREATE TABLE IF NOT EXISTS PerfTextQuery(charValue VARCHAR(100) NOT NULL) ENGINE = BLACKHOLE");
             mysqlStatement.execute("CREATE TABLE IF NOT EXISTS PerfTextQueryBlob(blobValue LONGBLOB NOT NULL) ENGINE = BLACKHOLE");
             mysqlStatement.execute("CREATE TABLE IF NOT EXISTS PerfReadQuery(id int, charValue VARCHAR(100) NOT NULL )");
             mysqlStatement.execute("CREATE TABLE IF NOT EXISTS PerfReadQueryBig(charValue VARCHAR(5000), charValue2 VARCHAR(5000) NOT NULL)");
-            mysqlStatement.execute("CREATE PROCEDURE IF NOT EXISTS withResultSet(a int) begin select a; end");
-            mysqlStatement.execute("CREATE PROCEDURE IF NOT EXISTS inoutParam(INOUT p1 INT) begin set p1 = p1 + 1; end");
-            mysqlStatement.execute("CREATE FUNCTION IF NOT EXISTS testFunctionCall(a float, b bigint, c int) RETURNS INT NO SQL \n"
+            mysqlStatement.execute("DROP PROCEDURE IF EXISTS withResultSet");
+            mysqlStatement.execute("DROP PROCEDURE IF EXISTS inoutParam");
+            mysqlStatement.execute("DROP FUNCTION IF EXISTS testFunctionCall");
+            mysqlStatement.execute("CREATE PROCEDURE withResultSet(a int) begin select a; end");
+            mysqlStatement.execute("CREATE PROCEDURE inoutParam(INOUT p1 INT) begin set p1 = p1 + 1; end");
+            mysqlStatement.execute("CREATE FUNCTION testFunctionCall(a float, b bigint, c int) RETURNS INT NO SQL \n"
                     + "BEGIN \n"
                     + "RETURN a; \n"
                     + "END");
@@ -125,6 +160,8 @@ public class BenchmarkInit {
             mariadbStatement.close();
             mariadbStatementFailover.close();
 
+            drizzleStatement.close();
+
             mysqlConnection.close();
             mysqlConnectionRewrite.close();
             mysqlConnectionText.close();
@@ -134,6 +171,8 @@ public class BenchmarkInit {
             mariadbConnectionRewrite.close();
             mariadbConnectionText.close();
             mariadbFailoverConnection.close();
+
+            drizzleConnectionText.close();
         }
     }
 

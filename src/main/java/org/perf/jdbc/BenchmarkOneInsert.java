@@ -20,6 +20,11 @@ public class BenchmarkOneInsert extends BenchmarkInit {
         executeOneInsert(state.mariadbStatement);
     }
 
+    @Benchmark
+    public void drizzle(MyState state) throws SQLException {
+        executeOneInsert(state.drizzleStatement);
+    }
+
     private void executeOneInsert(Statement stmt) throws SQLException {
         stmt.execute("INSERT INTO PerfTextQuery (charValue) values ('abc')");
     }
