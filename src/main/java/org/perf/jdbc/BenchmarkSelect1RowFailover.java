@@ -8,24 +8,24 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class BenchmarkSelect1RowFailover extends BenchmarkInit {
-
+    private String request = "SELECT * FROM PerfReadQuery where id = 0";
 
     @Benchmark
-    public void mysql(MyState state) throws Throwable {
-        select1Row(state.mysqlStatementFailover);
+    public String mysql(MyState state) throws Throwable {
+        return select1Row(state.mysqlStatementFailover);
     }
 
     @Benchmark
-    public void mariadb(MyState state) throws Throwable {
-        select1Row(state.mariadbStatementFailover);
+    public String mariadb(MyState state) throws Throwable {
+        return select1Row(state.mariadbStatementFailover);
     }
 
-    private void select1Row(Statement statement) throws SQLException {
-        ResultSet rs = statement.executeQuery("SELECT * FROM PerfReadQuery where id = 0");
+    private String select1Row(Statement statement) throws SQLException {
+        ResultSet rs = statement.executeQuery(request);
         rs.next();
-        rs.getString(1);
+        String result = rs.getString(1);
         rs.close();
+        return result;
     }
-
 
 }

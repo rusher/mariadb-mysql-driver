@@ -4,12 +4,13 @@ import org.openjdk.jmh.annotations.*;
 
 import java.sql.*;
 import java.util.Properties;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 @State(Scope.Benchmark)
-@Warmup(iterations = 10)
-@Measurement(iterations = 50)
-@Fork(value = 1)
+@Warmup(iterations = 20)
+@Measurement(iterations = 20)
+@Fork(value = 10)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 public class BenchmarkInit {
@@ -38,6 +39,9 @@ public class BenchmarkInit {
         public Connection drizzleConnectionText;
 
         public Statement drizzleStatement;
+
+        public String[] insertData = new String[1000];
+        private static final Random rand = new Random();
 
         private Connection createConnection(String className, String url, Properties props) throws Exception {
             return ((Driver) Class.forName(className).newInstance()).connect(url, props);
@@ -148,6 +152,29 @@ public class BenchmarkInit {
             }
             preparedStatement2.executeBatch();
 
+            //populate data
+            for (int i = 0; i < 1000; i++) {
+                insertData[i] = randomAscii(20);
+            }
+
+        }
+
+        /**
+         * Generate a random ASCII string of a given length.
+         */
+        public static String randomAscii(int length) {
+            int interval='~'-' '+1;
+
+            byte []buf = new byte[length];
+            rand.nextBytes(buf);
+            for (int i = 0; i < length; i++) {
+                if (buf[i] < 0) {
+                    buf[i] = (byte)((-buf[i] % interval) + ' ');
+                } else {
+                    buf[i] = (byte)((buf[i] % interval) + ' ');
+                }
+            }
+            return new String(buf);
         }
 
         @TearDown(Level.Trial)

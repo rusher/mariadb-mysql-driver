@@ -8,19 +8,20 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class BenchmarkOneInsertFailover extends BenchmarkInit {
+    private String request = "INSERT INTO PerfTextQuery (charValue) values ('abc')";
 
     @Benchmark
-    public void mysql(MyState state) throws SQLException {
-        executeOneInsert(state.mysqlStatementFailover);
+    public boolean mysql(MyState state) throws SQLException {
+        return executeOneInsert(state.mysqlStatementFailover);
     }
 
     @Benchmark
-    public void mariadb(MyState state) throws SQLException {
-        executeOneInsert(state.mariadbStatementFailover);
+    public boolean mariadb(MyState state) throws SQLException {
+        return executeOneInsert(state.mariadbStatementFailover);
     }
 
-    private void executeOneInsert(Statement stmt) throws SQLException {
-        stmt.execute("INSERT INTO PerfTextQuery (charValue) values ('abc')");
+    private boolean executeOneInsert(Statement stmt) throws SQLException {
+        return stmt.execute(request);
     }
 
 }

@@ -7,22 +7,24 @@ import org.perf.jdbc.common.BenchmarkInit;
 import java.sql.*;
 
 public class BenchmarkCallableStatementWithInParameter extends BenchmarkInit {
+    private String request = "{call withResultSet(?)}";
 
     @Benchmark
-    public void mysql(MyState state) throws Throwable {
-        callableStatementWithInParameter(state.mysqlConnection);
+    public boolean mysql(MyState state) throws Throwable {
+        return callableStatementWithInParameter(state.mysqlConnection);
     }
 
     @Benchmark
-    public void mariadb(MyState state) throws Throwable {
-        callableStatementWithInParameter(state.mariadbConnection);
+    public boolean mariadb(MyState state) throws Throwable {
+        return callableStatementWithInParameter(state.mariadbConnection);
     }
 
-    private void callableStatementWithInParameter(Connection connection) throws SQLException {
-        CallableStatement stmt = connection.prepareCall("{call withResultSet(?)}");
+    private boolean callableStatementWithInParameter(Connection connection) throws SQLException {
+        CallableStatement stmt = connection.prepareCall(request);
         stmt.setInt(1, 1);
-        stmt.execute();
+        boolean hasResultSet = stmt.execute();
         stmt.close();
+        return hasResultSet;
     }
 
 }

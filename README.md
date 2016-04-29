@@ -13,28 +13,32 @@ Class BenchmarkInit initialize connections using MySQL and MariaDB drivers befor
 test example org.perf.jdbc.BenchmarkPrepareStatementOneInsert : 
 ```java
 public class BenchmarkPrepareStatementOneInsert extends BenchmarkInit {
+    private String request = "INSERT INTO PerfTextQuery (charValue) values (?)";
 
     @Benchmark
-    public void mysql(MyState state) throws Throwable {
-        executeOneInsertPrepare(state.mysqlConnection);
+    public boolean mysql(MyState state) throws Throwable {
+        return executeOneInsertPrepare(state.mysqlConnection, state.insertData);
     }
-    
+
     @Benchmark
-    public void mariadb(MyState state) throws Throwable {
-        executeOneInsertPrepare(state.mariadbConnection);
+    public boolean mariadb(MyState state) throws Throwable {
+        return executeOneInsertPrepare(state.mariadbConnection, state.insertData);
     }
-    
-    private void executeOneInsertPrepare(Connection connection) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO PerfTextQuery (charValue) values (?)");
-        preparedStatement.setString(1, "abc");
-        preparedStatement.execute();
+
+    private boolean executeOneInsertPrepare(Connection connection, String[] datas) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement(request);
+        preparedStatement.setString(1, datas[0]);
+        boolean hasResultSet = preparedStatement.execute();
+        preparedStatement.close();
+        return hasResultSet;
     }
+
 }
 ```
 
 The test will execute the prepareStatement "INSERT INTO PerfTextQuery (charValue) values (?)" using a connection issued from MySQL or MariaDB driver.
 
-Tests are launched multiple times using 1 fork (we want JIT optimization), 10 warmup iterations of one second followed by 200 measurement iterations of one second.
+Tests are launched multiple times using 10 forks , 20 warmup iterations of one second followed by 20 measurement iterations of one second.
 
 
 List of tests and their signification :
@@ -67,13 +71,16 @@ List of tests and their signification :
 * install engine [BLACKHOLE](https://mariadb.com/kb/en/mariadb/blackhole/) using command "INSTALL SONAME 'ha_blackhole'" (This engine don't save data, permitting to execute INSERT queries with stable time result)
 * restart database to activate the BLACKHOLE engine
 * install a JRE
+* install maven
+* install git
 
 ```script
+git clone https://github.com/rusher/mariadb-mysql-driver.git
 mvn clean install
 java -Xmx64m -Xms64m -Duser.country=US -Duser.language=en -jar target/benchmarks.jar > result.txt &
 ```
 -Duser.country=US -Duser.language=en permit to avoid confusion with comma used as decimal separator / thousand separator according to countries
--Xmx64m -Xms64m is to limit java memory size so garbage time are more frequent, detect memory leak.
+-Xmx64m -Xms64m is to permit to have quick garbage and have more stable results. 
 
 ## Read results 
 
@@ -90,37 +97,43 @@ Complete results are the end of the file. Example of results :
 
 ```
 
-# Run complete. Total time: 01:40:13
+# Run complete. Total time: 02:04:50
 
-Benchmark                                           Mode  Cnt      Score     Error  Units
-BenchmarkBatch1000InsertRewrite.mariadb             avgt  200      1.164 ±   0.029  ms/op
-BenchmarkBatch1000InsertRewrite.mysql               avgt  200      1.259 ±   0.029  ms/op
-BenchmarkBatch1000InsertWithPrepare.mariadb         avgt  200     46.219 ±   1.080  ms/op
-BenchmarkBatch1000InsertWithPrepare.mysql           avgt  200     49.635 ±   1.649  ms/op
-BenchmarkBatch1000InsertWithoutPrepare.mariadb      avgt  200     54.914 ±   1.341  ms/op
-BenchmarkBatch1000InsertWithoutPrepare.mysql        avgt  200     66.083 ±   1.878  ms/op
-BenchmarkCallableStatementFunction.mariadb          avgt  200     95.601 ±   4.198  us/op
-BenchmarkCallableStatementFunction.mysql            avgt  200    623.952 ±  28.255  us/op
-BenchmarkCallableStatementWithInParameter.mariadb   avgt  200     73.491 ±   3.135  us/op
-BenchmarkCallableStatementWithInParameter.mysql     avgt  200    469.432 ±  18.568  us/op
-BenchmarkCallableStatementWithOutParameter.mariadb  avgt  200     59.385 ±   1.424  us/op
-BenchmarkCallableStatementWithOutParameter.mysql    avgt  200    590.231 ±  19.447  us/op
-BenchmarkOneInsert.mariadb                          avgt  200     53.862 ±   1.370  us/op
-BenchmarkOneInsert.mysql                            avgt  200     61.765 ±   1.338  us/op
-BenchmarkOneInsertFailover.mariadb                  avgt  200     55.747 ±   2.279  us/op
-BenchmarkOneInsertFailover.mysql                    avgt  200     76.649 ±   2.393  us/op
-BenchmarkPrepareStatementOneInsert.mariadb          avgt  200     48.681 ±   1.329  us/op
-BenchmarkPrepareStatementOneInsert.mysql            avgt  200    145.434 ±   6.270  us/op
-BenchmarkPrepareStatementOneInsertFailover.mariadb  avgt  200     51.474 ±   1.802  us/op
-BenchmarkPrepareStatementOneInsertFailover.mysql    avgt  200    193.823 ±   8.372  us/op
-BenchmarkSelect1000BigRows.mariadb                  avgt  200  33587.901 ± 774.048  us/op
-BenchmarkSelect1000BigRows.mysql                    avgt  200  43151.932 ± 886.725  us/op
-BenchmarkSelect1000Rows.mariadb                     avgt  200   1076.215 ±  23.980  us/op
-BenchmarkSelect1000Rows.mysql                       avgt  200   1095.477 ±  25.948  us/op
-BenchmarkSelect1Row.mariadb                         avgt  200    567.323 ±   9.950  us/op
-BenchmarkSelect1Row.mysql                           avgt  200    579.553 ±  13.912  us/op
-BenchmarkSelect1RowFailover.mariadb                 avgt  200    577.272 ±  24.752  us/op
-BenchmarkSelect1RowFailover.mysql                   avgt  200    601.247 ±  14.033  us/op
+Benchmark                                           Mode  Cnt      Score      Error  Units
+BenchmarkBatch1000InsertRewrite.mariadb             avgt  200      1.794 ±    0.079  ms/op
+BenchmarkBatch1000InsertRewrite.mysql               avgt  200      2.029 ±    0.072  ms/op
+BenchmarkBatch1000InsertWithPrepare.mariadb         avgt  200     64.626 ±    2.616  ms/op
+BenchmarkBatch1000InsertWithPrepare.mysql           avgt  200     77.398 ±    3.825  ms/op
+BenchmarkBatch1000InsertWithoutPrepare.drizzle      avgt  200    112.428 ±    2.681  ms/op
+BenchmarkBatch1000InsertWithoutPrepare.mariadb      avgt  200     91.085 ±    2.967  ms/op
+BenchmarkBatch1000InsertWithoutPrepare.mysql        avgt  200     97.374 ±    2.378  ms/op
+BenchmarkCallableStatementFunction.mariadb          avgt  200    140.729 ±    3.955  us/op
+BenchmarkCallableStatementFunction.mysql            avgt  200   2225.743 ±   67.761  us/op
+BenchmarkCallableStatementWithInParameter.mariadb   avgt  200     97.583 ±    2.189  us/op
+BenchmarkCallableStatementWithInParameter.mysql     avgt  200   2180.432 ±   80.557  us/op
+BenchmarkCallableStatementWithOutParameter.mariadb  avgt  200     90.299 ±    2.377  us/op
+BenchmarkCallableStatementWithOutParameter.mysql    avgt  200   2352.639 ±   84.619  us/op
+BenchmarkOneInsert.drizzle                          avgt  200    113.340 ±    3.484  us/op
+BenchmarkOneInsert.mariadb                          avgt  200     86.628 ±    2.354  us/op
+BenchmarkOneInsert.mysql                            avgt  200    202.543 ±    4.855  us/op
+BenchmarkOneInsertFailover.mariadb                  avgt  200     91.966 ±    2.469  us/op
+BenchmarkOneInsertFailover.mysql                    avgt  200    116.520 ±    2.324  us/op
+BenchmarkPrepareStatementOneInsert.mariadb          avgt  200     72.621 ±    3.407  us/op
+BenchmarkPrepareStatementOneInsert.mysql            avgt  200    187.943 ±    4.530  us/op
+BenchmarkPrepareStatementOneInsertFailover.mariadb  avgt  200     70.871 ±    2.264  us/op
+BenchmarkPrepareStatementOneInsertFailover.mysql    avgt  200     98.273 ±    3.349  us/op
+BenchmarkSelect1000BigRows.drizzle                  avgt  200  65585.084 ± 1703.481  us/op
+BenchmarkSelect1000BigRows.mariadb                  avgt  200  58574.563 ± 1662.803  us/op
+BenchmarkSelect1000BigRows.mysql                    avgt  200  62706.456 ± 1243.911  us/op
+BenchmarkSelect1000Rows.drizzle                     avgt  200   1522.172 ±   32.293  us/op
+BenchmarkSelect1000Rows.mariadb                     avgt  200   1227.215 ±   31.009  us/op
+BenchmarkSelect1000Rows.mysql                       avgt  200   1297.720 ±   45.662  us/op
+BenchmarkSelect1Row.drizzle                         avgt  200    724.186 ±   26.431  us/op
+BenchmarkSelect1Row.mariadb                         avgt  200    663.133 ±   18.063  us/op
+BenchmarkSelect1Row.mysql                           avgt  200    681.805 ±   17.590  us/op
+BenchmarkSelect1RowFailover.mariadb                 avgt  200    672.965 ±   18.827  us/op
+BenchmarkSelect1RowFailover.mysql                   avgt  200    696.748 ±   21.919  us/op
+
 
 ```
 
@@ -129,25 +142,25 @@ BenchmarkSelect1RowFailover.mysql                   avgt  200    601.247 ±  14.
 ms/op means millisecond per operation, us/op microsecond per operation.
 
 ```
-BenchmarkBatchInsert1000Rewrite.mariadb             avgt  100      1.131 ±   0.010  ms/op
-BenchmarkBatchInsert1000Rewrite.mysql               avgt  100      1.530 ±   0.069  ms/op
+BenchmarkBatch1000InsertRewrite.mariadb             avgt  200      1.794 ±    0.079  ms/op
+BenchmarkBatch1000InsertRewrite.mysql               avgt  200      2.029 ±    0.072  ms/op
 ```
 
 
 <div style="text-align:center"><img src ="Insert_1000_data_2.png" /></div>
 
-BenchmarkBatchInsert1000Rewrite = executing 1000 inserts with option rewriteBatchedStatements=true.
-Using mariadb driver, it take 1.131 millisecond to insert those 1000 data, and 99.9% of queries executes time are comprised between 1.121 (1.131 - 0.010) and 1.141 milliseconds (1.131 + 0.010).
-Using MySQL java driver, execution time is 1.530 millisecond.   
-(remember that INSERT queries are executed on BLACKHOLE engine, those number just reflect the execution time of the driver + echanges with database).
+BenchmarkBatch1000InsertRewrite = executing 1000 inserts with option rewriteBatchedStatements=true.
+Using mariadb driver, it take 1.794 millisecond to insert those 1000 data, and 99.9% of queries executes time are comprised between 1.715 (1.794 - 0.079) and 1.873 milliseconds (1.794 + 0.072).
+Using MySQL java driver, execution time is 2.029 millisecond.   
+(remember that INSERT queries are executed on BLACKHOLE engine, those number just reflect the execution time of the driver + exchanges with database).
 
 ##### Other example : 
 
 ```
-BenchmarkBatchInsert1000WithPrepare.mariadb         avgt  100     49.903 ±   1.318  ms/op
-BenchmarkBatchInsert1000WithPrepare.mysql           avgt  100     62.583 ±   2.754  ms/op
-BenchmarkBatchInsert1000WithoutPrepare.mariadb      avgt  100     62.332 ±   2.146  ms/op
-BenchmarkBatchInsert1000WithoutPrepare.mysql        avgt  100     70.661 ±   0.636  ms/op
+BenchmarkBatch1000InsertWithPrepare.mariadb         avgt  200     64.626 ±    2.616  ms/op
+BenchmarkBatch1000InsertWithPrepare.mysql           avgt  200     77.398 ±    3.825  ms/op
+BenchmarkBatch1000InsertWithoutPrepare.drizzle      avgt  200    112.428 ±    2.681  ms/op
+BenchmarkBatch1000InsertWithoutPrepare.mariadb      avgt  200     91.085 ±    2.967  ms/op
 ```
 
 <div style="text-align:center"><img src ="Insert_1000_data.png" /></div>

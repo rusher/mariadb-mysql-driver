@@ -12,25 +12,27 @@ import java.util.concurrent.TimeUnit;
 
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
 public class BenchmarkBatch1000InsertRewrite extends BenchmarkInit {
+    private String request = "INSERT INTO PerfTextQuery (charValue) values (?)";
 
     @Benchmark
-    public void mysql(MyState state) throws Throwable {
-        executeBatch(state.mysqlConnectionRewrite);
+    public int[] mysql(MyState state) throws Throwable {
+        return executeBatch(state.mysqlConnectionRewrite, state.insertData);
     }
 
     @Benchmark
-    public void mariadb(MyState state) throws Throwable {
-        executeBatch(state.mariadbConnectionRewrite);
+    public int[] mariadb(MyState state) throws Throwable {
+        return executeBatch(state.mariadbConnectionRewrite, state.insertData);
     }
 
-    private void executeBatch(Connection connection) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO PerfTextQuery (charValue) values (?)");
+    private int[] executeBatch(Connection connection, String[] data) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement(request);
         for (int i = 0; i < 1000; i++) {
-            preparedStatement.setString(1, "abc");
+            preparedStatement.setString(1, data[i]);
             preparedStatement.addBatch();
         }
-        preparedStatement.executeBatch();
+        int[] updateCounts = preparedStatement.executeBatch();
         preparedStatement.close();
+        return updateCounts;
     }
 
 }

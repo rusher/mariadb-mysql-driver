@@ -8,25 +8,27 @@ import java.sql.*;
 import java.util.concurrent.TimeUnit;
 
 public class BenchmarkCallableStatementFunction extends BenchmarkInit {
+    private String request = "{? = CALL testFunctionCall(?,?,?)}";
 
     @Benchmark
-    public void mysql(MyState state) throws Throwable {
-        callableStatementFunction(state.mysqlConnection);
+    public boolean mysql(MyState state) throws Throwable {
+        return callableStatementFunction(state.mysqlConnection);
     }
 
     @Benchmark
-    public void mariadb(MyState state) throws Throwable {
-        callableStatementFunction(state.mariadbConnection);
+    public boolean mariadb(MyState state) throws Throwable {
+        return callableStatementFunction(state.mariadbConnection);
     }
 
-    private void callableStatementFunction(Connection connection) throws SQLException {
-        CallableStatement callableStatement = connection.prepareCall("{? = CALL testFunctionCall(?,?,?)}");
+    private boolean callableStatementFunction(Connection connection) throws SQLException {
+        CallableStatement callableStatement = connection.prepareCall(request);
         callableStatement.registerOutParameter(1, Types.INTEGER);
         callableStatement.setFloat(2, 2);
         callableStatement.setInt(3, 1);
         callableStatement.setInt(4, 1);
-        callableStatement.execute();
+        boolean hasResultSet = callableStatement.execute();
         callableStatement.close();
+        return hasResultSet;
     }
 
 

@@ -9,24 +9,25 @@ import java.sql.Statement;
 import java.util.concurrent.TimeUnit;
 
 public class BenchmarkOneInsert extends BenchmarkInit {
+    private String request = "INSERT INTO PerfTextQuery (charValue) values ('abc')";
 
     @Benchmark
-    public void mysql(MyState state) throws SQLException {
-        executeOneInsert(state.mysqlStatement);
+    public boolean mysql(MyState state) throws SQLException {
+        return executeOneInsert(state.mysqlStatement);
     }
 
     @Benchmark
-    public void mariadb(MyState state) throws SQLException {
-        executeOneInsert(state.mariadbStatement);
+    public boolean mariadb(MyState state) throws SQLException {
+        return executeOneInsert(state.mariadbStatement);
     }
 
     @Benchmark
-    public void drizzle(MyState state) throws SQLException {
-        executeOneInsert(state.drizzleStatement);
+    public boolean drizzle(MyState state) throws SQLException {
+        return executeOneInsert(state.drizzleStatement);
     }
 
-    private void executeOneInsert(Statement stmt) throws SQLException {
-        stmt.execute("INSERT INTO PerfTextQuery (charValue) values ('abc')");
+    private boolean executeOneInsert(Statement stmt) throws SQLException {
+        return stmt.execute(request);
     }
 
 }

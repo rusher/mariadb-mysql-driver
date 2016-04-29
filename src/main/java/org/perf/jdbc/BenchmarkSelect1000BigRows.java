@@ -8,29 +8,30 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class BenchmarkSelect1000BigRows extends BenchmarkInit {
+    private String request = "SELECT * FROM PerfReadQueryBig";
 
     @Benchmark
-    public void mysql(MyState state) throws Throwable {
-        select1000BigRow(state.mysqlStatement);
+    public ResultSet mysql(MyState state) throws Throwable {
+        return select1000BigRow(state.mysqlStatement);
     }
 
     @Benchmark
-    public void mariadb(MyState state) throws Throwable {
-        select1000BigRow(state.mariadbStatement);
+    public ResultSet mariadb(MyState state) throws Throwable {
+        return select1000BigRow(state.mariadbStatement);
     }
 
     @Benchmark
-    public void drizzle(MyState state) throws Throwable {
-        select1000BigRow(state.drizzleStatement);
+    public ResultSet drizzle(MyState state) throws Throwable {
+        return select1000BigRow(state.drizzleStatement);
     }
 
-    private void select1000BigRow(Statement statement) throws SQLException {
-        ResultSet rs = statement.executeQuery("SELECT * FROM PerfReadQueryBig");
+    private ResultSet select1000BigRow(Statement statement) throws SQLException {
+        ResultSet rs = statement.executeQuery(request);
         while (rs.next()) {
             rs.getString(1);
             rs.getString(2);
         }
         rs.close();
+        return rs;
     }
-
 }

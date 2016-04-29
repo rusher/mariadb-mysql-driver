@@ -9,22 +9,25 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
 public class BenchmarkPrepareStatementOneInsertFailover extends BenchmarkInit {
+    private String request = "INSERT INTO PerfTextQuery (charValue) values (?)";
 
     @Benchmark
-    public void mysql(MyState state) throws Throwable {
-        executeOneInsertPrepare(state.mysqlFailoverConnection);
+    public boolean mysql(MyState state) throws Throwable {
+        return executeOneInsertPrepare(state.mysqlFailoverConnection, state.insertData);
     }
 
     @Benchmark
-    public void mariadb(MyState state) throws Throwable {
-        executeOneInsertPrepare(state.mariadbFailoverConnection);
+    public boolean mariadb(MyState state) throws Throwable {
+        return executeOneInsertPrepare(state.mariadbFailoverConnection, state.insertData);
     }
 
-    private void executeOneInsertPrepare(Connection connection) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO PerfTextQuery (charValue) values (?)");
-        preparedStatement.setString(1, "abc");
-        preparedStatement.execute();
+    private boolean executeOneInsertPrepare(Connection connection, String[] datas) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement(request);
+        preparedStatement.setString(1, datas[0]);
+        boolean hasResultSet = preparedStatement.execute();
         preparedStatement.close();
+        return hasResultSet;
     }
+
 
 }

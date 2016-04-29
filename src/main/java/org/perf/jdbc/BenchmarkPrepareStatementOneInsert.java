@@ -10,22 +10,24 @@ import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
 public class BenchmarkPrepareStatementOneInsert extends BenchmarkInit {
+    private String request = "INSERT INTO PerfTextQuery (charValue) values (?)";
 
     @Benchmark
-    public void mysql(MyState state) throws Throwable {
-        executeOneInsertPrepare(state.mysqlConnection);
+    public boolean mysql(MyState state) throws Throwable {
+        return executeOneInsertPrepare(state.mysqlConnection, state.insertData);
     }
 
     @Benchmark
-    public void mariadb(MyState state) throws Throwable {
-        executeOneInsertPrepare(state.mariadbConnection);
+    public boolean mariadb(MyState state) throws Throwable {
+        return executeOneInsertPrepare(state.mariadbConnection, state.insertData);
     }
 
-    private void executeOneInsertPrepare(Connection connection) throws SQLException {
-        PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO PerfTextQuery (charValue) values (?)");
-        preparedStatement.setString(1, "abc");
-        preparedStatement.execute();
+    private boolean executeOneInsertPrepare(Connection connection, String[] datas) throws SQLException {
+        PreparedStatement preparedStatement = connection.prepareStatement(request);
+        preparedStatement.setString(1, datas[0]);
+        boolean hasResultSet = preparedStatement.execute();
         preparedStatement.close();
+        return hasResultSet;
     }
 
 }

@@ -7,24 +7,26 @@ import org.perf.jdbc.common.BenchmarkInit;
 import java.sql.*;
 
 public class BenchmarkCallableStatementWithOutParameter extends BenchmarkInit {
+    private String request = "{call inOutParam(?)}";
 
     @Benchmark
-    public void mysql(MyState state) throws Throwable {
-        callableStatementWithOutParameter(state.mysqlConnection);
+    public String mysql(MyState state) throws Throwable {
+        return callableStatementWithOutParameter(state.mysqlConnection);
     }
 
     @Benchmark
-    public void mariadb(MyState state) throws Throwable {
-        callableStatementWithOutParameter(state.mariadbConnection);
+    public String mariadb(MyState state) throws Throwable {
+        return callableStatementWithOutParameter(state.mariadbConnection);
     }
 
-    private void callableStatementWithOutParameter(Connection connection) throws SQLException {
-        CallableStatement storedProc = connection.prepareCall("{call inOutParam(?)}");
+    private String callableStatementWithOutParameter(Connection connection) throws SQLException {
+        CallableStatement storedProc = connection.prepareCall(request);
         storedProc.setInt(1, 1);
         storedProc.registerOutParameter(1, Types.INTEGER);
         storedProc.execute();
-        storedProc.getString(1);
+        String outParam = storedProc.getString(1);
         storedProc.close();
+        return outParam;
     }
 
 }

@@ -8,28 +8,30 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class BenchmarkSelect1000Rows extends BenchmarkInit {
+    private String request = "SELECT * FROM PerfReadQuery";
 
     @Benchmark
-    public void mysql(MyState state) throws Throwable {
-        select1000Row(state.mysqlStatement);
+    public ResultSet mysql(MyState state) throws Throwable {
+        return select1000Row(state.mysqlStatement);
     }
 
     @Benchmark
-    public void mariadb(MyState state) throws Throwable {
-        select1000Row(state.mariadbStatement);
+    public ResultSet mariadb(MyState state) throws Throwable {
+        return select1000Row(state.mariadbStatement);
     }
 
     @Benchmark
-    public void drizzle(MyState state) throws Throwable {
-        select1000Row(state.drizzleStatement);
+    public ResultSet drizzle(MyState state) throws Throwable {
+        return select1000Row(state.drizzleStatement);
     }
 
-    private void select1000Row(Statement statement) throws SQLException {
-        ResultSet rs = statement.executeQuery("SELECT * FROM PerfReadQuery");
+    private ResultSet select1000Row(Statement statement) throws SQLException {
+        ResultSet rs = statement.executeQuery(request);
         while (rs.next()) {
             rs.getString(1);
         }
         rs.close();
+        return rs;
     }
 
 }
